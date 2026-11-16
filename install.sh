@@ -57,8 +57,8 @@ else
 bbr="Openvz/Lxc"
 fi
 
-if [ ! -f xuiyg_update ]; then
-green "首次安装x-ui-yg脚本必要的依赖……"
+if [ ! -f xuipox_update ]; then
+green "首次安装xui-pox脚本必要的依赖……"
 if [[ x"${release}" == x"alpine" ]]; then
 apk update
 apk add wget curl tar jq iptables tzdata openssl busybox-extras expect git socat iproute2 coreutils util-linux 
@@ -75,22 +75,13 @@ fi
 
 if [ -x "$(command -v apt-get)" ]; then
 apt update -y
-apt install jq tzdata socat cron busybox iptables-persistent coreutils util-linux -y
+apt install jq tzdata socat busybox iptables-persistent coreutils util-linux -y
 elif [ -x "$(command -v yum)" ]; then
 yum update -y && yum install epel-release -y
 yum install jq tzdata busybox socat coreutils util-linux -y
 elif [ -x "$(command -v dnf)" ]; then
 dnf update -y
 dnf install jq tzdata busybox socat coreutils util-linux -y
-fi
-if [ -x "$(command -v yum)" ] || [ -x "$(command -v dnf)" ]; then
-if ! command -v "cronie" &> /dev/null; then
-if [ -x "$(command -v yum)" ]; then
-yum install -y cronie
-elif [ -x "$(command -v dnf)" ]; then
-dnf install -y cronie
-fi
-fi
 fi
 
 packages=("curl" "openssl" "tar" "expect" "xxd" "python3" "wget" "git")
@@ -109,7 +100,7 @@ fi
 fi
 done
 fi
-touch xuiyg_update
+touch xuipox_update
 fi
 
 if [[ $vi = openvz ]]; then
@@ -121,9 +112,7 @@ TUN=$(cat /dev/net/tun 2>&1)
 if [[ ! $TUN =~ 'in bad state' ]] && [[ ! $TUN =~ '处于错误状态' ]] && [[ ! $TUN =~ 'Die Dateizugriffsnummer ist in schlechter Verfassung' ]]; then 
 green "添加TUN支持失败，建议与VPS厂商沟通或后台设置开启" && exit
 else
-echo '#!/bin/bash' > /root/tun.sh && echo 'cd /dev && mkdir net && mknod net/tun c 10 200 && chmod 0666 net/tun' >> /root/tun.sh && chmod +x /root/tun.sh
-grep -qE "^ *@reboot root bash /root/tun.sh >/dev/null 2>&1" /etc/crontab || echo "@reboot root bash /root/tun.sh >/dev/null 2>&1" >> /etc/crontab
-green "TUN守护功能已启动"
+green "TUN支持已就绪"
 fi
 fi
 fi
@@ -157,8 +146,7 @@ fi
 serinstall(){
 green "下载并安装x-ui相关组件……"
 cd /usr/local/
-#curl -L -o /usr/local/x-ui-linux-${cpu}.tar.gz --insecure https://gitlab.com/rwkgyg/x-ui-yg/raw/main/x-ui-linux-${cpu}.tar.gz
-curl -L -o /usr/local/x-ui-linux-${cpu}.tar.gz -# --retry 2 --insecure https://github.com/yonggekkk/x-ui-yg/releases/download/xui_yg/x-ui-linux-${cpu}.tar.gz
+curl -L -o /usr/local/x-ui-linux-${cpu}.tar.gz -# --retry 2 --insecure https://github.com/suanx/xui-pox/releases/download/xui_yg/x-ui-linux-${cpu}.tar.gz
 tar zxvf x-ui-linux-${cpu}.tar.gz > /dev/null 2>&1
 rm x-ui-linux-${cpu}.tar.gz -f
 cd x-ui
@@ -169,8 +157,7 @@ systemctl enable x-ui >/dev/null 2>&1
 systemctl start x-ui >/dev/null 2>&1
 cd
 rm /usr/bin/x-ui -f
-#curl -L -o /usr/bin/x-ui --insecure https://gitlab.com/rwkgyg/x-ui-yg/raw/main/1install.sh >/dev/null 2>&1
-curl -L -o /usr/bin/x-ui -# --retry 2 --insecure https://raw.githubusercontent.com/yonggekkk/x-ui-yg/main/install.sh
+curl -L -o /usr/bin/x-ui -# --retry 2 --insecure https://raw.githubusercontent.com/suanx/xui-pox/main/install.sh
 chmod +x /usr/bin/x-ui
 if [[ x"${release}" == x"alpine" ]]; then
 echo '#!/sbin/openrc-run
@@ -204,7 +191,7 @@ fi
 rm /usr/bin/x-ui -f
 rm /etc/x-ui-yg/ -rf
 rm /usr/local/x-ui/ -rf
-rm -rf xuiyg_update
+rm -rf xuipox_update
 exit
 fi
 }
@@ -278,12 +265,12 @@ certinstall(){
 echo
 readp "设置 x-ui 登录方式（输入y，表示启用https登录方式，开始验证安装证书；回车跳过为继续使用http登录方式）：" cert
 if [[ -n $cert ]]; then
-if [[ ! -s /root/ygkkkca/cert.crt ]]; then
-bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/acme-yg/main/acme.sh)
+if [[ ! -s /root/xuica/cert.crt ]]; then
+bash <(curl -Ls https://raw.githubusercontent.com/suanx/xui-pox/main/acme.sh)
 fi
-if [[ -s /root/ygkkkca/cert.crt ]]; then
-webCertFile="/root/ygkkkca/cert.crt"
-webKeyFile="/root/ygkkkca/private.key"
+if [[ -s /root/xuica/cert.crt ]]; then
+webCertFile="/root/xuica/cert.crt"
+webKeyFile="/root/xuica/private.key"
 /usr/local/x-ui/x-ui cert -webCert "$webCertFile" -webCertKey "$webKeyFile" > /dev/null 2>&1
 echo
 green "经检测，已安装了证书，自动开启https登录方式"
@@ -323,14 +310,10 @@ fi
 resinstall(){
 echo "----------------------------------------------------------------------"
 restart
-#curl -sL https://gitlab.com/rwkgyg/x-ui-yg/-/raw/main/version/version | awk -F "更新内容" '{print $1}' | head -n 1 > /usr/local/x-ui/v
-curl -sL https://raw.githubusercontent.com/yonggekkk/x-ui-yg/main/version | awk -F "更新内容" '{print $1}' | head -n 1 > /usr/local/x-ui/v
 showxuiip
 sleep 2
-xuigo
-cronxui
 echo "----------------------------------------------------------------------"
-blue "x-ui-yg $(cat /usr/local/x-ui/v 2>/dev/null) 安装成功，自动进入 x-ui 显示管理菜单" && sleep 4
+blue "xui-pox 安装成功，自动进入 xui-pox 显示管理菜单" && sleep 4
 echo
 show_menu
 }
@@ -346,34 +329,13 @@ userinstall
 portinstall
 pathinstall
 certinstall
-mkdir -p /root/ygkkkcaz
-command -v openssl >/dev/null 2>&1 && openssl ecparam -genkey -name prime256v1 -out /root/ygkkkcaz/private.key >/dev/null 2>&1
-command -v openssl >/dev/null 2>&1 && openssl req -new -x509 -days 36500 -key /root/ygkkkcaz/private.key -out /root/ygkkkcaz/cert.crt -subj "/CN=www.bing.com" >/dev/null 2>&1
-SHA256=$(openssl x509 -in /root/ygkkkcaz/cert.crt -outform DER | sha256sum | awk '{print $1}')
-echo "$SHA256" > /root/ygkkkcaz/SHA256.txt
+mkdir -p /root/xuicaz
+command -v openssl >/dev/null 2>&1 && openssl ecparam -genkey -name prime256v1 -out /root/xuicaz/private.key >/dev/null 2>&1
+command -v openssl >/dev/null 2>&1 && openssl req -new -x509 -days 36500 -key /root/xuicaz/private.key -out /root/xuicaz/cert.crt -subj "/CN=www.bing.com" >/dev/null 2>&1
+SHA256=$(openssl x509 -in /root/xuicaz/cert.crt -outform DER | sha256sum | awk '{print $1}')
+echo "$SHA256" > /root/xuicaz/SHA256.txt
 resinstall
 #[[ -e /etc/gai.conf ]] && grep -qE '^ *precedence ::ffff:0:0/96  100' /etc/gai.conf || echo 'precedence ::ffff:0:0/96  100' >> /etc/gai.conf 2>/dev/null
-}
-
-update() {
-yellow "升级也有可能出意外哦，建议如下："
-yellow "一、点击x-ui面版中的备份与恢复，下载备份文件x-ui-yg.db"
-yellow "二、在 /etc/x-ui-yg 路径导出备份文件x-ui-yg.db"
-readp "确定升级，请按回车(退出请按ctrl+c):" ins
-if [[ -z $ins ]]; then
-if [[ x"${release}" == x"alpine" ]]; then
-rc-service x-ui stop
-else
-systemctl stop x-ui
-fi
-serinstall && sleep 2
-restart
-#curl -sL https://gitlab.com/rwkgyg/x-ui-yg/-/raw/main/version/version | awk -F "更新内容" '{print $1}' | head -n 1 > /usr/local/x-ui/v
-curl -sL https://raw.githubusercontent.com/yonggekkk/x-ui-yg/main/version | awk -F "更新内容" '{print $1}' | head -n 1 > /usr/local/x-ui/v
-green "x-ui更新完成" && sleep 2 && x-ui
-else
-red "输入有误" && update
-fi
 }
 
 uninstall() {
@@ -397,8 +359,7 @@ kill -15 $(cat /usr/local/x-ui/xuiargopid.log 2>/dev/null) >/dev/null 2>&1
 kill -15 $(cat /usr/local/x-ui/xuiargoympid.log 2>/dev/null) >/dev/null 2>&1
 kill -15 $(cat /usr/local/x-ui/xuiwpphid.log 2>/dev/null) >/dev/null 2>&1
 kill -15 $(pgrep -f 'webxui' 2>/dev/null) >/dev/null 2>&1
-rm -rf /root/webxui /etc/local.d/alpinesub.start /usr/local/x-ui/ /etc/x-ui-yg/ /usr/bin/x-ui xuiyg_update ygkkkcaz
-uncronxui
+rm -rf /root/webxui /etc/local.d/alpinesub.start /usr/local/x-ui/ /etc/x-ui-yg/ /usr/bin/x-ui xuipox_update xuicaz
 iptables -t nat -F PREROUTING >/dev/null 2>&1
 ip6tables -t nat -F PREROUTING >/dev/null 2>&1
 netfilter-persistent save >/dev/null 2>&1
@@ -412,7 +373,7 @@ fi
 echo
 green "x-ui已卸载完成"
 echo
-blue "欢迎继续使用x-ui-yg脚本：bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/x-ui-yg/main/install.sh)"
+blue "xui-pox 已卸载完成"
 exit
 else
 red "输入有误" && uninstall
@@ -434,10 +395,6 @@ systemctl stop x-ui
 fi
 check_status
 if [[ $? == 1 ]]; then
-crontab -l 2>/dev/null > /tmp/crontab.tmp
-sed -i '/goxui.sh/d' /tmp/crontab.tmp
-crontab /tmp/crontab.tmp >/dev/null 2>&1
-rm /tmp/crontab.tmp
 green "x-ui停止成功"
 else
 red "x-ui停止失败，请运行 x-ui log 查看日志并反馈" && exit
@@ -454,14 +411,6 @@ fi
 sleep 2
 check_status
 if [[ $? == 0 ]]; then
-crontab -l 2>/dev/null > /tmp/crontab.tmp
-sed -i '/goxui.sh/d' /tmp/crontab.tmp
-crontab /tmp/crontab.tmp >/dev/null 2>&1
-rm /tmp/crontab.tmp
-crontab -l 2>/dev/null > /tmp/crontab.tmp
-echo "* * * * * /usr/local/x-ui/goxui.sh" >> /tmp/crontab.tmp
-crontab /tmp/crontab.tmp >/dev/null 2>&1
-rm /tmp/crontab.tmp
 green "x-ui重启成功"
 else
 red "x-ui重启失败，请运行 x-ui log 查看日志并反馈" && exit
@@ -495,7 +444,7 @@ get_char && show_menu
 
 acme() {
 #bash <(curl -Ls https://gitlab.com/rwkgyg/acme-script/raw/main/acme.sh)
-bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/acme-yg/main/acme.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/suanx/xui-pox/main/acme.sh)
 back
 }
 
@@ -506,7 +455,7 @@ back
 
 cfwarp() {
 #bash <(curl -Ls https://gitlab.com/rwkgyg/CFwarp/raw/main/CFwarp.sh)
-bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/warp-yg/main/CFwarp.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/suanx/xui-pox/main/CFwarp.sh)
 back
 }
 
@@ -650,42 +599,6 @@ echo -e "xray状态: $red未启动$plain"
 fi
 }
 
-xuigo(){
-cat>/usr/local/x-ui/goxui.sh<<-\EOF
-#!/bin/bash
-xui=`ps -aux |grep "x-ui" |grep -v "grep" |wc -l`
-xray=`ps -aux |grep "xray" |grep -v "grep" |wc -l`
-if [ $xui = 0 ];then
-systemctl restart x-ui
-fi
-if [ $xray = 0 ];then
-systemctl restart x-ui
-fi
-EOF
-chmod +x /usr/local/x-ui/goxui.sh
-}
-
-cronxui(){
-uncronxui
-crontab -l 2>/dev/null > /tmp/crontab.tmp
-echo "* * * * * /usr/local/x-ui/goxui.sh" >> /tmp/crontab.tmp
-echo "0 2 * * * systemctl restart x-ui" >> /tmp/crontab.tmp
-crontab /tmp/crontab.tmp >/dev/null 2>&1
-rm /tmp/crontab.tmp
-}
-
-uncronxui(){
-crontab -l 2>/dev/null > /tmp/crontab.tmp
-sed -i '/goxui.sh/d' /tmp/crontab.tmp
-sed -i '/systemctl restart x-ui/d' /tmp/crontab.tmp
-sed -i '/xuiargoport.log/d' /tmp/crontab.tmp
-sed -i '/xuiargopid.log/d' /tmp/crontab.tmp
-sed -i '/xuiargoympid/d' /tmp/crontab.tmp
-sed -i '/xuiwpphid.log/d' /tmp/crontab.tmp
-crontab /tmp/crontab.tmp >/dev/null 2>&1
-rm /tmp/crontab.tmp
-}
-
 close(){
 systemctl stop firewalld.service >/dev/null 2>&1
 systemctl disable firewalld.service >/dev/null 2>&1
@@ -806,10 +719,6 @@ elif [ "$menu" = "3" ];then
 subportipsub
 elif [ "$menu" = "4" ];then
 kill -15 $(pgrep -f 'webxui' 2>/dev/null) >/dev/null 2>&1
-crontab -l 2>/dev/null > /tmp/crontab.tmp
-sed -i '/webxui/d' /tmp/crontab.tmp
-crontab /tmp/crontab.tmp >/dev/null 2>&1
-rm /tmp/crontab.tmp
 rm -rf /root/webxui
 rm -rf /etc/local.d/alpinesub.start
 green "本地IP订阅链接已卸载完成" && exit
@@ -829,21 +738,6 @@ else
 busybox httpd -f -p "$(cat /usr/local/x-ui/subport.log 2>/dev/null)" -h /root/webxui > /dev/null 2>&1 &
 fi
 sleep 5
-if command -v apk >/dev/null 2>&1; then
-cat > /etc/local.d/alpinesub.start <<'EOF'
-#!/bin/bash
-sleep 10
-busybox-extras httpd -f -p $(cat /usr/local/x-ui/subport.log 2>/dev/null) -h /root/webxui > /dev/null 2>&1 &
-EOF
-chmod +x /etc/local.d/alpinesub.start
-rc-update add local default >/dev/null 2>&1
-else
-crontab -l 2>/dev/null > /tmp/crontab.tmp
-sed -i '/webxui/d' /tmp/crontab.tmp
-echo '@reboot sleep 10 && /bin/bash -c "busybox httpd -f -p $(cat /usr/local/x-ui/subport.log 2>/dev/null) -h /root/webxui > /dev/null 2>&1 &"' >> /tmp/crontab.tmp
-crontab /tmp/crontab.tmp >/dev/null 2>&1
-rm /tmp/crontab.tmp
-fi
 sharesub_sbcl >/dev/null 2>&1 && green "本地IP订阅链接已更新完成" && sleep 2 && x-ui
 }
 
@@ -961,22 +855,10 @@ yellow "1：请确保你输入的端口是x-ui已创建WS协议端口"
 yellow "2：Argo域名验证暂不可用，稍后可能会自动恢复，或者再次重置" && sleep 2
 fi
 done
-crontab -l 2>/dev/null > /tmp/crontab.tmp
-sed -i '/xuiargoport.log/d' /tmp/crontab.tmp
-crontab /tmp/crontab.tmp >/dev/null 2>&1
-rm /tmp/crontab.tmp
-crontab -l 2>/dev/null > /tmp/crontab.tmp
-echo '@reboot sleep 10 && /bin/bash -c "/usr/local/x-ui/cloudflared tunnel --url http://localhost:$(cat /usr/local/x-ui/xuiargoport.log) --edge-ip-version auto --no-autoupdate --protocol http2 > /usr/local/x-ui/argo.log 2>&1 & pid=\$! && echo \$pid > /usr/local/x-ui/xuiargopid.log"' >> /tmp/crontab.tmp
-crontab /tmp/crontab.tmp >/dev/null 2>&1
-rm /tmp/crontab.tmp
 sharesub_sbcl >/dev/null 2>&1
 elif [ "$menu" = "2" ]; then
 kill -15 $(cat /usr/local/x-ui/xuiargopid.log 2>/dev/null) >/dev/null 2>&1
 rm -rf /usr/local/x-ui/argo.log /usr/local/x-ui/xuiargopid.log /usr/local/x-ui/xuiargoport.log /usr/local/x-ui/cloudflared
-crontab -l 2>/dev/null > /tmp/crontab.tmp
-sed -i '/xuiargopid.log/d' /tmp/crontab.tmp
-crontab /tmp/crontab.tmp >/dev/null 2>&1
-rm /tmp/crontab.tmp
 green "已卸载Argo临时隧道"
 sharesub_sbcl >/dev/null 2>&1
 else
@@ -1012,21 +894,12 @@ sleep 20
 fi
 echo ${argoym} > /usr/local/x-ui/xuiargoym.log
 echo ${argotoken} > /usr/local/x-ui/xuiargotoken.log
-crontab -l 2>/dev/null > /tmp/crontab.tmp
-sed -i '/xuiargoympid/d' /tmp/crontab.tmp
-echo '@reboot sleep 10 && /bin/bash -c "nohup setsid /usr/local/x-ui/cloudflared tunnel --no-autoupdate --edge-ip-version auto --protocol http2 run --token $(cat /usr/local/x-ui/xuiargotoken.log 2>/dev/null) >/dev/null 2>&1 & pid=\$! && echo \$pid > /usr/local/x-ui/xuiargoympid.log"' >> /tmp/crontab.tmp
-crontab /tmp/crontab.tmp >/dev/null 2>&1
-rm /tmp/crontab.tmp
 argo=$(cat /usr/local/x-ui/xuiargoym.log 2>/dev/null)
 blue "Argo固定隧道设置完成，固定域名：$argo"
 sharesub_sbcl >/dev/null 2>&1
 elif [ "$menu" = "2" ]; then
 kill -15 $(cat /usr/local/x-ui/xuiargoympid.log 2>/dev/null) >/dev/null 2>&1
 rm -rf /usr/local/x-ui/xuiargoym.log /usr/local/x-ui/xuiargoymport.log /usr/local/x-ui/xuiargoympid.log /usr/local/x-ui/xuiargotoken.log /usr/local/x-ui/cloudflared
-crontab -l 2>/dev/null > /tmp/crontab.tmp
-sed -i '/xuiargoympid/d' /tmp/crontab.tmp
-crontab /tmp/crontab.tmp >/dev/null 2>&1
-rm /tmp/crontab.tmp
 green "已卸载Argo固定隧道"
 sharesub_sbcl >/dev/null 2>&1
 else
@@ -1055,12 +928,12 @@ red "如果VPS不支持以上13个CF标准端口（NAT类VPS），请在CF规则
 echo
 readp "输入自定义的优选IP/域名 (回车跳过表示恢复本地IP直连)：" menu
 [[ -z "$menu" ]] && > /usr/local/x-ui/bin/xuicdnip_ws.txt || echo "$menu" > /usr/local/x-ui/bin/xuicdnip_ws.txt
-green "设置成功，可选择7刷新" && sharesub_sbcl >/dev/null 2>&1 && show_menu
+green "设置成功，可选择6刷新" && sharesub_sbcl >/dev/null 2>&1 && show_menu
 elif [ "$menu" = "2" ]; then
 red "请确保Argo临时隧道或者固定隧道的节点功能已启用" && sleep 2
 readp "输入自定义的优选IP/域名 (回车跳过表示用默认优选域名：www.visa.com.sg)：" menu
 [[ -z "$menu" ]] && > /usr/local/x-ui/bin/xuicdnip_argo.txt || echo "$menu" > /usr/local/x-ui/bin/xuicdnip_argo.txt
-green "设置成功，可选择7刷新" && sharesub_sbcl >/dev/null 2>&1 && show_menu
+green "设置成功，可选择6刷新" && sharesub_sbcl >/dev/null 2>&1 && show_menu
 else
 changeserv
 fi
@@ -1497,7 +1370,7 @@ done
 
 rm -rf /usr/local/x-ui/bin/jhsub.txt
 xip1=$(cat /usr/local/x-ui/xip 2>/dev/null | sed -n 1p)
-ymip=$(cat /root/ygkkkca/ca.log 2>/dev/null)
+ymip=$(cat /root/xuica/ca.log 2>/dev/null)
 directory="/usr/local/x-ui/bin/"
 for i in $(seq 1 $tag_count); do
 file="${directory}${i}.log"
@@ -1510,7 +1383,7 @@ if [[ -n $tls ]]; then
 hy2_ins=false 
 hy2_name=$tls
 else
-SHA256=$(openssl x509 -in /root/ygkkkcaz/cert.crt -outform DER | sha256sum | awk '{print $1}')
+SHA256=$(openssl x509 -in /root/xuicaz/cert.crt -outform DER | sha256sum | awk '{print $1}')
 hy2_ins=true 
 hy2_name=www.bing.com
 fi
@@ -2552,7 +2425,7 @@ case $(uname -m) in
 aarch64) cpu=arm64;;
 x86_64) cpu=amd64;;
 esac
-curl -L -o /usr/local/x-ui/xuiwpph -# --retry 2 --insecure https://raw.githubusercontent.com/yonggekkk/x-ui-yg/main/xuiwpph_$cpu
+curl -L -o /usr/local/x-ui/xuiwpph -# --retry 2 --insecure https://raw.githubusercontent.com/suanx/xui-pox/main/xuiwpph_$cpu
 chmod +x /usr/local/x-ui/xuiwpph
 fi
 if [[ -n $(ps -e | grep xuiwpph) ]]; then
@@ -2583,10 +2456,6 @@ fi
 unins(){
 kill -15 $(cat /usr/local/x-ui/xuiwpphid.log 2>/dev/null) >/dev/null 2>&1
 rm -rf /usr/local/x-ui/xuiwpph.log /usr/local/x-ui/xuiwpphid.log
-crontab -l 2>/dev/null > /tmp/crontab.tmp
-sed -i '/xuiwpphid.log/d' /tmp/crontab.tmp
-crontab /tmp/crontab.tmp >/dev/null 2>&1
-rm /tmp/crontab.tmp
 }
 echo
 yellow "1：重置启用WARP-plus-Socks5本地Warp代理模式"
@@ -2604,11 +2473,6 @@ if [[ -z $resv1 && -z $resv2 ]]; then
 red "WARP-plus-Socks5的IP获取失败" && unins && exit
 else
 echo "/usr/local/x-ui/xuiwpph -b 127.0.0.1:$port -$sw46 --endpoint 162.159.192.1:2408 >/dev/null 2>&1" > /usr/local/x-ui/xuiwpph.log
-crontab -l 2>/dev/null > /tmp/crontab.tmp
-sed -i '/xuiwpphid.log/d' /tmp/crontab.tmp
-echo '@reboot sleep 10 && /bin/bash -c "nohup setsid $(cat /usr/local/x-ui/xuiwpph.log 2>/dev/null) & pid=\$! && echo \$pid > /usr/local/x-ui/xuiwpphid.log"' >> /tmp/crontab.tmp
-crontab /tmp/crontab.tmp >/dev/null 2>&1
-rm /tmp/crontab.tmp
 green "WARP-plus-Socks5的IP获取成功，可进行Socks5代理分流"
 fi
 elif [ "$menu" = "2" ]; then
@@ -2656,11 +2520,6 @@ if [[ -z $resv1 && -z $resv2 ]]; then
 red "WARP-plus-Socks5的IP获取失败，尝试换个国家地区吧" && unins && exit
 else
 echo "/usr/local/x-ui/xuiwpph -b 127.0.0.1:$port --cfon --country $guojia -$sw46 --endpoint 162.159.192.1:2408 >/dev/null 2>&1" > /usr/local/x-ui/xuiwpph.log
-crontab -l 2>/dev/null > /tmp/crontab.tmp
-sed -i '/xuiwpphid.log/d' /tmp/crontab.tmp
-echo '@reboot sleep 10 && /bin/bash -c "nohup setsid $(cat /usr/local/x-ui/xuiwpph.log 2>/dev/null) & pid=\$! && echo \$pid > /usr/local/x-ui/xuiwpphid.log"' >> /tmp/crontab.tmp
-crontab /tmp/crontab.tmp >/dev/null 2>&1
-rm /tmp/crontab.tmp
 green "WARP-plus-Socks5的IP获取成功，可进行Socks5代理分流"
 fi
 elif [ "$menu" = "3" ]; then
@@ -2668,18 +2527,6 @@ unins && green "已停止WARP-plus-Socks5代理功能"
 else
 show_menu
 fi
-}
-
-sbsm(){
-echo
-green "关注甬哥YouTube频道：https://youtube.com/@ygkkk?sub_confirmation=1 了解最新代理协议与翻墙动态"
-echo
-blue "x-ui-yg脚本视频教程：https://www.youtube.com/playlist?list=PLMgly2AulGG_Affv6skQXWnVqw7XWiPwJ"
-echo
-blue "x-ui-yg脚本博客说明：https://ygkkk.blogspot.com/2023/05/reality-xui-chatgpt.html"
-echo
-blue "x-ui-yg脚本项目地址：https://github.com/yonggekkk/x-ui-yg"
-echo
 }
 
 show_menu(){
@@ -2692,11 +2539,8 @@ echo -e "${bblue}     ░██        ░${plain}██    ░██ ██    
 echo -e "${bblue}     ░██ ${plain}        ░██    ░░██        ░██ ░██       ░${red}██ ░██       ░██ ░██ ${plain}  "
 echo -e "${bblue}     ░█${plain}█          ░██ ██ ██         ░██  ░░${red}██     ░██  ░░██     ░██  ░░██ ${plain}  "
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" 
-white "甬哥Github项目  ：github.com/yonggekkk"
-white "甬哥Blogger博客 ：ygkkk.blogspot.com"
-white "甬哥YouTube频道 ：www.youtube.com/@ygkkk"
 white "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" 
-white "x-ui-yg脚本快捷方式：x-ui"
+white "xui-pox脚本快捷方式：x-ui"
 red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" 
 green " 1. 一键安装 x-ui"
 green " 2. 删除卸载 x-ui"
@@ -2704,36 +2548,17 @@ echo "--------------------------------------------------------------------------
 green " 3. 其他设置 【Argo固定临时隧道、生成本地IP订阅链接、设置hy2协议多端口跳跃】"
 green " 4. 变更 x-ui 面板设置 【用户名密码、登录端口、根路径、还原面板】"
 green " 5. 关闭、重启 x-ui"
-green " 6. 更新 x-ui 脚本"
 echo "----------------------------------------------------------------------------------"
-green " 7. 更新并查看聚合通用节点、clash-meta与sing-box客户端配置及订阅链接"
-green " 8. 查看 x-ui 运行日志"
-green " 9. 一键原版BBR+FQ加速"
-green "10. 管理 Acme 申请域名证书"
-green "11. 管理 Warp 查看本地Netflix、ChatGPT解锁情况"
-green "12. 添加WARP-plus-Socks5代理模式 【本地Warp/多地区Psiphon-VPN】"
-green "13. 刷新IP配置及参数显示"
-echo "----------------------------------------------------------------------------------"
-green "14. x-ui-yg脚本使用说明书"
+green " 6. 更新并查看聚合通用节点、clash-meta与sing-box客户端配置及订阅链接"
+green " 7. 查看 x-ui 运行日志"
+green " 8. 一键原版BBR+FQ加速"
+green " 9. 管理 Acme 申请域名证书"
+green "10. 管理 Warp"
+green "11. 添加WARP-plus-Socks5代理模式 【本地Warp/多地区Psiphon-VPN】"
+green "12. 刷新IP配置及参数显示"
 echo "----------------------------------------------------------------------------------"
 green " 0. 退出脚本"
 red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" 
-insV=$(cat /usr/local/x-ui/v 2>/dev/null)
-#latestV=$(curl -s https://gitlab.com/rwkgyg/x-ui-yg/-/raw/main/version/version | awk -F "更新内容" '{print $1}' | head -n 1)
-latestV=$(curl -sL https://raw.githubusercontent.com/yonggekkk/x-ui-yg/main/version | awk -F "更新内容" '{print $1}' | head -n 1)
-if [[ -f /usr/local/x-ui/v ]]; then
-if [ "$insV" = "$latestV" ]; then
-echo -e "当前 x-ui-yg 脚本最新版：${bblue}${insV}${plain} (已安装)"
-else
-echo -e "当前 x-ui-yg 脚本版本号：${bblue}${insV}${plain}"
-echo -e "检测到最新 x-ui-yg 脚本版本号：${yellow}${latestV}${plain} (可选择6进行更新)"
-echo -e "${yellow}$(curl -sL https://raw.githubusercontent.com/yonggekkk/x-ui-yg/main/version)${plain}"
-#echo -e "${yellow}$(curl -sL https://gitlab.com/rwkgyg/x-ui-yg/-/raw/main/version/version)${plain}"
-fi
-else
-echo -e "当前 x-ui-yg 脚本版本号：${bblue}${latestV}${plain}"
-echo -e "请先选择 1 ，安装 x-ui-yg 脚本"
-fi
 red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" 
 echo -e "VPS状态如下："
 echo -e "系统:$blue$op$plain  \c";echo -e "内核:$blue$version$plain  \c";echo -e "处理器:$blue$cpu$plain  \c";echo -e "虚拟化:$blue$vi$plain  \c";echo -e "BBR算法:$blue$bbr$plain"
@@ -2904,8 +2729,8 @@ else
 xuimb="http://${xip1}:${xport}${xpath}"
 fi
 echo -e "$blue登录地址(裸IP泄露模式-非安全)：$xuimb$plain"
-if [[ -f /root/ygkkkca/ca.log ]]; then
-echo -e "$blue登录地址(域名或IP加密模式-安全)：https://$(cat /root/ygkkkca/ca.log 2>/dev/null):${xport}${xpath}$plain"
+if [[ -f /root/xuica/ca.log ]]; then
+echo -e "$blue登录地址(域名或IP加密模式-安全)：https://$(cat /root/xuica/ca.log 2>/dev/null):${xport}${xpath}$plain"
 else
 echo -e "$sred强烈建议申请IP或域名证书并开启域名(https)登录方式，以确保面板数据安全$plain"
 fi
@@ -2916,22 +2741,20 @@ echo -e "$red未安装x-ui，无显示$plain"
 fi
 red "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" 
 echo
-readp "请输入数字【0-14】:" Input
+readp "请输入数字【0-12】:" Input
 case "$Input" in     
  1 ) check_uninstall && xuiinstall;;
  2 ) check_install && uninstall;;
  3 ) check_install && changeserv;;
  4 ) check_install && xuichange;;
  5 ) check_install && xuirestop;;
- 6 ) check_install && update;;
- 7 ) check_install && sharesub;;
- 8 ) check_install && show_log;;
- 9 ) bbr;;
- 10  ) acme;;
- 11 ) cfwarp;;
- 12 ) check_install && insxuiwpph;;
- 13 ) check_install && showxuiip && show_menu;;
- 14 ) sbsm;;
+ 6 ) check_install && sharesub;;
+ 7 ) check_install && show_log;;
+ 8 ) bbr;;
+ 9 ) acme;;
+ 10  ) cfwarp;;
+ 11  ) check_install && insxuiwpph;;
+ 12  ) check_install && showxuiip && show_menu;;
  * ) exit 
 esac
 }

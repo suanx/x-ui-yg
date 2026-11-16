@@ -1,8 +1,6 @@
 name: Keep Servers Alive
 on:
-  schedule:
-   - cron: '0 12 */10 * *' # 每10天的12：00执行一次（私库每月500分钟运行时长，每天16分钟）
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   keep_servers_alive:
@@ -25,10 +23,7 @@ jobs:
         run: |
              echo "*****************************************************"
              echo "*****************************************************"
-             echo "甬哥Github项目  ：github.com/yonggekkk"
-             echo "甬哥Blogger博客 ：ygkkk.blogspot.com"
-             echo "甬哥YouTube频道 ：www.youtube.com/@ygkkk"
-             echo "vps服务器远程登录一次SSH脚本【Github】"
+             echo "xui-pox - VPS 服务器远程登录保活脚本"
              echo "*****************************************************"
              echo "*****************************************************"
               count=0  

@@ -1,67 +1,53 @@
+# xui-pox
 
-### x-ui精简修改版一键脚本，面板中的相关设置尽可能与原作者[vaxilu](https://github.com/vaxilu/x-ui)保持一致
+x-ui 面板精简修改版一键安装脚本。
 
-### 支持纯IPV4、纯IPV6、AMD64、ARM64的VPS直接安装
+- 支持纯 IPv4、纯 IPv6,以及 AMD64 / ARM64 架构的 VPS 安装
+- 支持 Alpine 系统,推荐使用最新版 Ubuntu
+- 订阅节点本地化生成,不依赖第三方外链节点转换服务
 
-### 支持alpine系统，推荐使用最新的Ubuntu系统
+## 一键安装
 
-### Docker版本[https://github.com/ShaoG-R/x-ui-yg-docker](https://github.com/ShaoG-R/x-ui-yg-docker)———由[ShaoG-R](https://github.com/ShaoG-R)维护
-
-### 本项目订阅节点为本地化生成，不使用节点转换等第三方外链引用，无需担心节点订阅被外链作者查看
-
------------------------------------------------
-
-### 相关说明及注意点请查看[博客说明](https://ygkkk.blogspot.com/2023/05/reality-xui-chatgpt.html)
-
-### 视频教程：
-
-[🥇搭建代理9大问题排行榜：第4名全网99%的人被误导！第1名每个人都被折腾到爆！](https://youtu.be/pJwJBqBkcfw)
-
-[🥇2025年度代理协议"拉到夯"综合排名](https://youtu.be/IoFtykGXDao)
-
-[x-ui搭建xray协议大更新（一）：reality协议三模式，数据重置、备份、恢复详细操作](https://youtu.be/xlvKnjQoF7c)
-
-[x-ui搭建xray协议大更新（二）：集成Argo固定隧道、临时隧道](https://youtu.be/NCPCHAi8pzs)
-
-[x-ui搭建xray协议大更新（三）：支持多协议聚合订阅，自动生成Clash-meta、Sing-box配置文件](https://youtu.be/UlQm6c0UQ4U)
-
-[x-ui搭建xray协议大更新（四）：支持Alpine系统；ChatGPT客户端可以随便登录了，多IP分流设置详细说明](https://youtu.be/2G2f64Mm1UU)
-
-[x-ui搭建xray协议大更新（五）：集成oblivion warp免费vpn功能，支持本地WARP+赛风VPN切换分流(30个国家IP)](https://youtu.be/Zo65206HBRM)
-
-[x-ui搭建xray协议大更新（六）：Xhttp轻松搞定UDP/TCP/CDN，Xhttp最简单的7个方案，总有一款适合你](https://youtu.be/kY_4AyQh1l0)
-
-[x-ui-yg面版脚本大更新（七）：支持Hy2协议，自签证书与IP证书设置要点；多端口跳跃设置；本地IP订阅链接自动更新配置](https://youtu.be/8AI_fFwHMJE)
-
------------------------------------------------------
-### 交流平台：[甬哥博客地址](https://ygkkk.blogspot.com)、[甬哥YouTube频道](https://www.youtube.com/@ygkkk)、[甬哥TG电报群组](https://t.me/+jZHc6-A-1QQ5ZGVl)、[甬哥TG电报频道](https://t.me/+DkC9ZZUgEFQzMTZl)
-
--------------------------------
-
-### 一键脚本：
 ```
-bash <(wget -qO- https://raw.githubusercontent.com/yonggekkk/x-ui-yg/main/install.sh)
+bash <(wget -qO- https://raw.githubusercontent.com/suanx/xui-pox/main/install.sh)
 ```
+
 或
+
 ```
-bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/x-ui-yg/main/install.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/suanx/xui-pox/main/install.sh)
 ```
 
------------------------------------------------------
-### x-ui-yg脚本菜单界面附加功能全开预览图（注：相关参数随意填写，仅供围观）
+## 管理
 
-![3b01adef46255df98053a3e49372373](https://github.com/user-attachments/assets/cea4568f-bb19-46b9-a35b-bacc67ac573a)
+安装完成后,在终端输入 `x-ui` 打开管理菜单。主菜单功能:
 
------------------------------------------------------
-### 感谢支持！微信打赏甬哥侃侃侃ygkkk
-![41440820a366deeb8109db5610313a1](https://github.com/user-attachments/assets/69597ca3-e7a5-44e7-8e5e-6305c7a63933)
+| 选项 | 功能 |
+|---|---|
+| 1 | 一键安装 xui-pox |
+| 2 | 删除卸载 xui-pox |
+| 3 | 其他设置(Argo 固定/临时隧道、本地 IP 订阅链接、hy2 多端口跳跃) |
+| 4 | 变更面板设置(用户名密码、登录端口、根路径、还原面板) |
+| 5 | 关闭、重启 xui-pox |
+| 6 | 更新并查看聚合通用节点、clash-meta 与 sing-box 客户端配置及订阅链接 |
+| 7 | 查看 xui-pox 运行日志 |
+| 8 | 一键原版 BBR+FQ 加速 |
+| 9 | 管理 Acme 申请域名证书 |
+| 10 | 管理 Warp |
+| 11 | 添加 WARP-plus-Socks5 代理模式(本地 Warp / 多地区 Psiphon-VPN) |
+| 12 | 刷新 IP 配置及参数显示 |
+| 0 | 退出脚本 |
 
------------------------------------------------------
+## 仓库文件
 
-### 感谢你右上角的star🌟
-[![Stargazers over time](https://starchart.cc/yonggekkk/x-ui-yg.svg)](https://starchart.cc/yonggekkk/x-ui-yg)
+| 文件 | 说明 |
+|---|---|
+| `install.sh` | 一键安装与管理脚本(主程序) |
+| `config.json` | xray 默认出站配置模板 |
+| `version` | 版本记录 |
+| `ssh.yml` | 可选的服务器 SSH 保活工作流(需自行填写账户信息) |
+| `xuiwpph_amd64` / `xuiwpph_arm64` | WARP-plus Socks5 二进制 |
 
----------------------------------------
-#### 声明：所有代码来源于Github参考项目与ChatGPT的整合，参考项目[vaxilu](https://github.com/vaxilu/x-ui)，[MHSanaei](https://github.com/MHSanaei/3x-ui)，[qist](https://github.com/qist/xray-ui)，[warpplus](https://github.com/bepass-org/warp-plus)
+## 说明
 
-#### 二进制文件未开源，介意者请勿安装使用 
+本版本已移除后台定时任务(自愈、开机自启、看门狗)、在线更新与版本检测功能,以及所有第三方推广内容。安装与升级请手动执行脚本。
